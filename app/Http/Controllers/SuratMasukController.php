@@ -67,7 +67,7 @@ class SuratMasukController extends Controller
     
         return view('surat-masuk.show',compact('surat'));
 
-    
+     
     }
     
     /**

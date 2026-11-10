@@ -1,39 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Surat Masuk</title>
-</head>
-<body>
+@extends('layouts.app')
 
-    <h1>halaman ini menampilkan halaman surat masuk</h1>
-    <table border="1" cellpadding= "10">
+@section('title', 'Surat Masuk')
+
+@section('content')
+
+    <h1>Daftar Surat Masuk</h1>
+
+    @can('manage-letters')
+        <p><a href="{{ route('surat-masuk.create') }}">+ Tambah Surat</a></p>
+    @endcan
+
+    @if (session('success'))
+        <p style="color:green">{{ session('success') }}</p>
+    @endif
+
+    <table border="1" cellpadding="10">
         <thead>
-            <th>No Urut</th>
-            <th>No surat</th>
-            <th>Tanggal</th>
-            <th>Pengirim</th>
-            <th>Perihal</th>
-            <th>aksi</th>
+            <tr>
+                <th>No</th>
+                <th>Nomor Surat</th>
+                <th>Tanggal</th>
+                <th>Pengirim</th>
+                <th>Perihal</th>
+                <th>Aksi</th>
+            </tr>
         </thead>
 
         <tbody>
-        @foreach($suratMasuk as $i)
-        <tr>
-            <td>{{ $loop->iteration}}</td>
-            <td>{{ $i['nomor_surat'] }}</td>
-            <td>{{ $i['tanggal'] }}</td>
-            <td>{{ $i['pengirim'] }}</td>
-            <td>{{ $i['perihal'] }}</td>
-            <td>
-                <a href="{{route('surat.show', $i['id'])}}">Detail</a>
-            </td>
-        </tr>
-        @endforeach
-    </tbody>
+            @forelse ($suratmasuk as $surat)
+                <tr>
+                    <td>{{ $loop->iteration }}</td>
+                    <td>{{ $surat->nomor_surat }}</td>
+                    <td>{{ $surat->tanggal }}</td>
+                    <td>{{ $surat->pengirim }}</td>
+                    <td>{{ $surat->perihal }}</td>
+                    <td>
+                        <a href="{{ route('surat-masuk.show', $surat->id) }}">Detail</a>
 
+                        @can('manage-letters')
+                            <a href="{{ route('surat-masuk.edit', $surat->id) }}">Edit</a>
+                            <form method="POST" action="{{ route('surat-masuk.destroy', $surat->id) }}" style="display:inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" onclick="return confirm('Hapus surat ini?')">Hapus</button>
+                            </form>
+                        @endcan
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6">Belum ada surat masuk.</td>
+                </tr>
+            @endforelse
+        </tbody>
     </table>
-    
-</body>
-</html>
+
+@endsection

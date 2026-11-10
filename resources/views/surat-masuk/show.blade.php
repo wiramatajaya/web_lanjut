@@ -1,19 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>Halaman Detail Surat</h1>
-    
-    @if ($surat)
-        <p>{{$surat['nomor_surat']}}</p>
-        <a href="{{route('surat.index')}}">Kembali</a>
-    @else
-            data tidak ada
-        <a href="{{route('surat.index')}}">Kembali</a>
-    @endif
-</body>
-</html>
+@extends('layouts.app')
+
+@section('title', 'Detail Surat Masuk')
+
+@section('content')
+
+    <h1>Detail Surat Masuk</h1>
+    <p>Nomor: {{ $surat->nomor_surat }}</p>
+    <p>Tanggal: {{ $surat->tanggal }}</p>
+    <p>Pengirim: {{ $surat->pengirim }}</p>
+    <p>Perihal: {{ $surat->perihal }}</p>
+    <p>Keterangan: {{ $surat->keterangan ?? '-' }}</p>
+    <a href="{{ route('surat-masuk.index') }}">Kembali</a>
+
+@endsection
