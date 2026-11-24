@@ -15,24 +15,23 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     // Surat Masuk (yang ada create harus DI ATAS show)
+        Route::resource('surat-masuk', SuratMasukController::class)
+        ->only(['index', 'show','create','edit'])
+        ->parameters(['surat-masuk' => 'id']);
     Route::resource('surat-masuk', SuratMasukController::class)
-        ->except(['index', 'show'])
+        ->except(['index', 'show','create','edit','delete'])
         ->parameters(['surat-masuk' => 'id'])
         ->middleware('can:manage-letters');
-
-    Route::resource('surat-masuk', SuratMasukController::class)
-        ->only(['index', 'show'])
-        ->parameters(['surat-masuk' => 'id']);
-
-    // Surat Keluar (urutan sama)
-    Route::resource('surat-keluar', SuratKeluarController::class)
-        ->except(['index', 'show'])
-        ->parameters(['surat-keluar' => 'id'])
-        ->middleware('can:manage-letters');
-
     Route::resource('surat-keluar', SuratKeluarController::class)
         ->only(['index', 'show'])
         ->parameters(['surat-keluar' => 'id']);
+    Route::resource('surat-keluar', SuratKeluarController::class)
+        ->except(['index', 'show','create'])
+        ->parameters(['surat-keluar' => 'id'])
+        ->middleware('can:manage-letters');
+
+
+
 });
 
 // //ROUTER DASAR

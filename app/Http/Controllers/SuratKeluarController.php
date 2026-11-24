@@ -3,62 +3,74 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\OutgoingLetter;
+
 
 class SuratKeluarController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $suratkeluar = OutgoingLetter::orderBy('id', 'desc')->get();
+        return view('surat-keluar.index', compact('suratkeluar'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('surat-keluar.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nomor_surat' => 'required|string|max:255',
+            'tanggal' => 'required|date',
+            'tujuan' => 'required|string|max:255',
+            'perihal' => 'required|string|max:255',
+            'keterangan' => 'nullable|string',
+        ]);
+
+        OutgoingLetter::create($validated);
+
+        return redirect()->route('surat-keluar.index')
+            ->with('success', 'Surat keluar berhasil ditambahkan.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        $surat = OutgoingLetter::findOrFail($id);
+        return view('surat-keluar.show', compact('surat'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
+        $surat = OutgoingLetter::findOrFail($id);
+        return view('surat-keluar.edit', compact('surat'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $surat = OutgoingLetter::findOrFail($id);
+
+        $validated = $request->validate([
+            'nomor_surat' => 'required|string|max:255',
+            'tanggal' => 'required|date',
+            'tujuan' => 'required|string|max:255',
+            'perihal' => 'required|string|max:255',
+            'keterangan' => 'nullable|string',
+        ]);
+
+        $surat->update($validated);
+
+        return redirect()->route('surat-keluar.index')
+            ->with('success', 'Surat keluar berhasil diperbarui.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        $surat = OutgoingLetter::findOrFail($id);
+        $surat->delete();
+
+        return redirect()->route('surat-keluar.index')
+            ->with('success', 'Surat keluar berhasil dihapus.');
     }
 }

@@ -3,94 +3,73 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\IncomingLatter;
 
-class SuratMasukController extends Controller
-{
+class SuratMasukController extends Controller{
 
-   public function index(){
-    $suratMasuk = [
-        [
-            'id' => 1,
-            'nomor_surat' => '002/BAA/X/2026',
-            'tanggal'     => '14-10-2026',
-            'pengirim'    => 'BAA',
-            'perihal'     => 'Edaran Akademik',
-        ],
-        [
-            'id'          => 2,
-            'nomor_surat' => '003/LPM/X/2026',
-            'tanggal'     => '18-10-2026',
-            'pengirim'    => 'LPM',
-            'perihal'     => 'Sosialisasi Pedoman',
-        ]
-    ];
-
-    return view ('surat-masuk.index', compact('suratMasuk'));
-}
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()    
+    public function index()
     {
-        //
+        $suratmasuk = IncomingLatter::orderBy('id', 'desc')->get();
+        return view('surat-masuk.index', compact('suratmasuk'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    public function create()
+    {
+        return view('surat-masuk.create');
+    }
+
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nomor_surat' => 'required|string|max:255',
+            'tanggal' => 'required|date',
+            'pengirim' => 'required|string|max:255',
+            'perihal' => 'required|string|max:255',
+            'keterangan' => 'nullable|string',
+        ]);
+
+        IncomingLatter::create($validated);
+
+        return redirect()->route('surat-masuk.index')
+            ->with('success', 'Surat berhasil ditambahkan.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {   
-         $suratMasukShow = [1=>[
-            'id' => 1,
-            'nomor_surat' => '002/BAA/X/2026',
-            'tanggal'     => '14-10-2026',
-            'pengirim'    => 'BAA',
-            'perihal'     => 'Edaran Akademik',
-        ],3=>[
-            'id'          => 2,
-            'nomor_surat' => '003/LPM/X/2026',
-            'tanggal'     => '18-10-2026',
-            'pengirim'    => 'LPM',
-            'perihal'     => 'Sosialisasi Pedoman',
-        ]
-    ];
-        $surat = $suratMasukShow[$id]??null;
-    
-        return view('surat-masuk.show',compact('surat'));
-
-     
-    }
-    
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function show($id)
     {
-        //
+        $surat = IncomingLatter::findOrFail($id);
+        return view('surat-masuk.show', compact('surat'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function edit($id)
     {
-        //
+        $surat = IncomingLatter::findOrFail($id);
+        return view('surat-masuk.edit', compact('surat'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $surat = IncomingLatter::findOrFail($id);
+
+        $validated = $request->validate([
+            'nomor_surat' => 'required|string|max:255',
+            'tanggal' => 'required|date',
+            'pengirim' => 'required|string|max:255',
+            'perihal' => 'required|string|max:255',
+            'keterangan' => 'nullable|string',
+        ]);
+
+        $surat->update($validated);
+
+        return redirect()->route('surat-masuk.index')
+            ->with('success', 'Surat berhasil diperbarui.');
+    }
+
+    public function destroy($id)
+    {
+        $surat = IncomingLatter::findOrFail($id);
+        $surat->delete();
+
+        return redirect()->route('surat-masuk.index')
+            ->with('success', 'Surat berhasil dihapus.');
     }
 }
