@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class IncomingLatter extends Model
 {
       protected $table = 'incoming_letters';
@@ -14,4 +14,9 @@ class IncomingLatter extends Model
         'perihal',
         'keterangan',
     ];
+
+    public function category(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+{
+return $this->belongsTo(Category::class);
+}
 }

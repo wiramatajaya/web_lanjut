@@ -9,16 +9,37 @@ class OutgoingLetterSeeder extends Seeder
 {
     public function run(): void
     {
-        $data = [
-            ['nomor_surat' => 'SK-001', 'tanggal' => '2026-10-15', 'tujuan' => 'Fakultas Teknik',     'perihal' => 'Undangan Rapat'],
-            ['nomor_surat' => 'SK-002', 'tanggal' => '2026-10-16', 'tujuan' => 'Teknik Informatika',  'perihal' => 'Pemberitahuan Kegiatan'],
-            ['nomor_surat' => 'SK-003', 'tanggal' => '2026-10-17', 'tujuan' => 'BEM Fakultas Teknik', 'perihal' => 'Surat Permohonan'],
+        $letters = [
+            [
+                'nomor_surat' => '001/OUT/X/2026',
+                'tanggal' => '2026-10-10',
+                'tujuan' => 'Fakultas Teknik',
+                'perihal' => 'Undangan Rapat Koordinasi',
+                'keterangan' => 'Surat undangan rapat koordinasi fakultas.',
+            ],
+            [
+                'nomor_surat' => '002/OUT/X/2026',
+                'tanggal' => '2026-10-15',
+                'tujuan' => 'Bagian Akademik',
+                'perihal' => 'Pemberitahuan Jadwal Ujian',
+                'keterangan' => 'Pemberitahuan jadwal ujian semester.',
+            ],
+            [
+                'nomor_surat' => '003/OUT/X/2026',
+                'tanggal' => '2026-10-20',
+                'tujuan' => 'LPPM',
+                'perihal' => 'Permohonan Data Penelitian',
+                'keterangan' => 'Permohonan data untuk keperluan penelitian.',
+            ],
         ];
 
-        foreach ($data as $surat) {
+        foreach ($letters as $letter) {
             DB::table('outgoing_letters')->updateOrInsert(
-                ['nomor_surat' => $surat['nomor_surat']],
-                $surat + ['created_at' => now(), 'updated_at' => now()]
+                ['nomor_surat' => $letter['nomor_surat']],
+                $letter + [
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
             );
         }
     }

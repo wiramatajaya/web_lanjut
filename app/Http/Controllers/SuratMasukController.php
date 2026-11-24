@@ -2,74 +2,116 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
+use App\Models\IncomingLetter;
 use Illuminate\Http\Request;
-use App\Models\IncomingLatter;
+use Illuminate\Support\Facades\Storage;
 
-class SuratMasukController extends Controller{
-
-    public function index()
+class SuratMasukController extends Controller
+{
+    public function index(Request $request)
     {
-        $suratmasuk = IncomingLatter::orderBy('id', 'desc')->get();
-        return view('surat-masuk.index', compact('suratmasuk'));
+        $query = IncomingLetter::with('category');
+
+        if ($request->filled('q')) {
+            $q = $request->input('q');
+            $query->where(function ($builder) use ($q) {
+                $builder->where('nomor_surat', 'like', "%{$q}%")
+                    ->orWhere('pengirim', 'like', "%{$q}%")
+                    ->orWhere('perihal', 'like', "%{$q}%");
+            });
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+        }
+
+        $suratMasuk = $query->latest('id')->paginate(5)->withQueryString();
+        $categories = Category::orderBy('nama')->get();
+
+        return view('surat-masuk.index', compact('suratMasuk', 'categories'));
     }
 
     public function create()
     {
-        return view('surat-masuk.create');
+        $categories = Category::orderBy('nama')->get();
+
+        return view('surat-masuk.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nomor_surat' => 'required|string|max:255',
-            'tanggal' => 'required|date',
-            'pengirim' => 'required|string|max:255',
-            'perihal' => 'required|string|max:255',
-            'keterangan' => 'nullable|string',
-        ]);
+        $validated = $this->validatedData($request);
 
-        IncomingLatter::create($validated);
+        if ($request->hasFile('lampiran')) {
+            $validated['lampiran'] = $request->file('lampiran')
+                ->store('lampiran-surat', 'public');
+        }
 
-        return redirect()->route('surat-masuk.index')
-            ->with('success', 'Surat berhasil ditambahkan.');
+        IncomingLetter::create($validated);
+
+        return redirect()->route('surat-masuk.index')->with('success', 'Surat masuk berhasil ditambahkan.');
     }
 
-    public function show($id)
+    public function show(int $id)
     {
-        $surat = IncomingLatter::findOrFail($id);
+        $surat = IncomingLetter::with('category')->findOrFail($id);
+
         return view('surat-masuk.show', compact('surat'));
     }
 
-    public function edit($id)
+    public function edit(int $id)
     {
-        $surat = IncomingLatter::findOrFail($id);
-        return view('surat-masuk.edit', compact('surat'));
+        $surat = IncomingLetter::findOrFail($id);
+        $categories = Category::orderBy('nama')->get();
+
+        return view('surat-masuk.edit', compact('surat', 'categories'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
-        $surat = IncomingLatter::findOrFail($id);
+        $surat = IncomingLetter::findOrFail($id);
+        $validated = $this->validatedData($request);
 
-        $validated = $request->validate([
-            'nomor_surat' => 'required|string|max:255',
-            'tanggal' => 'required|date',
-            'pengirim' => 'required|string|max:255',
-            'perihal' => 'required|string|max:255',
-            'keterangan' => 'nullable|string',
-        ]);
+        if ($request->hasFile('lampiran')) {
+            $pathLama = $surat->lampiran;
+            $validated['lampiran'] = $request->file('lampiran')
+                ->store('lampiran-surat', 'public');
+            $surat->update($validated);
+            if ($pathLama) {
+                Storage::disk('public')->delete($pathLama);
+            }
+        } else {
+            unset($validated['lampiran']);
+            $surat->update($validated);
+        }
 
-        $surat->update($validated);
-
-        return redirect()->route('surat-masuk.index')
-            ->with('success', 'Surat berhasil diperbarui.');
+        return redirect()->route('surat-masuk.index')->with('success', 'Surat masuk berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
-        $surat = IncomingLatter::findOrFail($id);
+        $surat = IncomingLetter::findOrFail($id);
+        $path = $surat->lampiran;
         $surat->delete();
 
-        return redirect()->route('surat-masuk.index')
-            ->with('success', 'Surat berhasil dihapus.');
+        if ($path) {
+            Storage::disk('public')->delete($path);
+        }
+
+        return redirect()->route('surat-masuk.index')->with('success', 'Surat masuk berhasil dihapus.');
+    }
+
+    private function validatedData(Request $request): array
+    {
+        return $request->validate([
+            'nomor_surat' => ['required', 'string', 'max:255'],
+            'tanggal' => ['required', 'date'],
+            'pengirim' => ['required', 'string', 'max:255'],
+            'perihal' => ['required', 'string', 'max:255'],
+            'keterangan' => ['nullable', 'string'],
+            'category_id' => ['nullable', 'exists:categories,id'],
+            'lampiran' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
+        ]);
     }
 }

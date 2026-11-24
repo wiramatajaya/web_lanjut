@@ -1,36 +1,25 @@
-@extends('layouts.app')
+@extends('layout.app')
 
 @section('title', 'Edit Surat Keluar')
+@section('jenis', 'keluar')
 
 @section('content')
-
-    <h1>Edit Surat Keluar</h1>
-
-    <form action="{{ route('surat-keluar.update', $surat->id) }}" method="POST">
-        @csrf
-        @method('PUT')
-        <p>Nomor Surat:<br>
-            <input name="nomor_surat" value="{{ old('nomor_surat', $surat->nomor_surat) }}">
-            @error('nomor_surat') <span style="color:red">{{ $message }}</span> @enderror
-        </p>
-        <p>Tanggal:<br>
-            <input type="date" name="tanggal" value="{{ old('tanggal', $surat->tanggal) }}">
-            @error('tanggal') <span style="color:red">{{ $message }}</span> @enderror
-        </p>
-        <p>Tujuan:<br>
-            <input name="tujuan" value="{{ old('tujuan', $surat->tujuan) }}">
-            @error('tujuan') <span style="color:red">{{ $message }}</span> @enderror
-        </p>
-        <p>Perihal:<br>
-            <input name="perihal" value="{{ old('perihal', $surat->perihal) }}">
-            @error('perihal') <span style="color:red">{{ $message }}</span> @enderror
-        </p>
-        <p>Keterangan:<br>
-            <textarea name="keterangan">{{ old('keterangan', $surat->keterangan) }}</textarea>
-            @error('keterangan') <span style="color:red">{{ $message }}</span> @enderror
-        </p>
-        <button type="submit">Simpan Perubahan</button>
-        <a href="{{ route('surat-keluar.index') }}">Batal</a>
-    </form>
-
+    <div class="mx-auto max-w-3xl">
+        <a href="{{ route('surat-keluar.index') }}" class="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-ink-soft transition hover:text-accent"><span aria-hidden="true">←</span> Kembali ke daftar</a>
+        <div class="mb-6">
+            <p class="eyebrow">Surat Keluar</p>
+            <h1 class="page-title mt-2">Edit Surat</h1>
+            <p class="mt-2 text-sm text-ink-soft">Perbarui data surat keluar yang dipilih.</p>
+        </div>
+        <section class="card p-6 sm:p-8">
+            @include('surat._form', [
+                'action' => route('surat-keluar.update', $surat->id),
+                'method' => 'PUT',
+                'surat' => $surat,
+                'route' => 'surat-keluar',
+                'pihakField' => 'tujuan',
+                'pihakLabel' => 'Tujuan',
+            ])
+        </section>
+    </div>
 @endsection

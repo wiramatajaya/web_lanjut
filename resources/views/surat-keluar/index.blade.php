@@ -1,103 +1,87 @@
-@extends('layouts.app')
+@extends('layout.app')
 
 @section('title', 'Surat Keluar')
-
-@section('header-title', 'Daftar Surat Keluar')
+@section('jenis', 'keluar')
 
 @section('content')
-<div class="space-y-6">
-    
-    <!-- Bagian Heading & Tombol Tambah Surat Keluar -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">Daftar Surat Keluar</h1>
-            <p class="text-sm text-gray-500 mt-1">Kelola data surat keluar dan arsip dengan mudah.</p>
+            <p class="eyebrow">Buku agenda</p>
+            <h1 class="page-title mt-2">Surat Keluar</h1>
+            <p class="mt-2 text-sm text-ink-soft">Surat yang diterbitkan dan dikirim dari instansi.</p>
         </div>
-
-
+        @can('manage-letters')
+            <a href="{{ route('surat-keluar.create') }}" class="btn btn-primary">
+                <span class="text-lg leading-none">+</span> Tambah Surat
+            </a>
+        @endcan
     </div>
 
-    <!-- Alert Notifikasi Sukses -->
-    @if (session('success'))
-        <div class="p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 rounded-r-lg shadow-sm">
-            <div class="flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                <span class="font-medium">{{ session('success') }}</span>
-            </div>
-        </div>
-    @endif
+    @include('surat._filter', ['route' => 'surat-keluar.index', 'placeholder' => 'Cari nomor, tujuan, atau perihal'])
 
-    <!-- Card Tabel Data -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <section class="card overflow-hidden">
+        <div class="flex items-center justify-between border-b border-line px-6 py-4">
+            <p class="text-sm text-ink-soft"><span class="font-semibold text-ink">{{ $suratKeluar->total() }}</span> surat ditemukan</p>
+            <span class="stamp">Keluar</span>
+        </div>
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-red-900 text-white text-xs uppercase tracking-wider font-semibold">
-                        <th class="py-3 px-4 text-center w-16">No</th>
-                        <th class="py-3 px-4">Nomor Surat</th>
-                        <th class="py-3 px-4">Tanggal</th>
-                        <th class="py-3 px-4">Tujuan</th>
-                        <th class="py-3 px-4">Perihal</th>
-                        <th class="py-3 px-4 text-center w-44">Aksi</th>
+            <table class="w-full min-w-[940px] text-left text-sm">
+                <thead class="border-b border-line text-[11px] tracking-[0.14em] text-ink-faint uppercase">
+                    <tr>
+                        <th class="px-6 py-3 font-bold">No</th>
+                        <th class="px-4 py-3 font-bold">Nomor Surat</th>
+                        <th class="px-4 py-3 font-bold">Tanggal</th>
+                        <th class="px-4 py-3 font-bold">Tujuan</th>
+                        <th class="px-4 py-3 font-bold">Perihal</th>
+                        <th class="px-4 py-3 font-bold">Kategori</th>
+                        <th class="px-4 py-3 font-bold">Keterangan</th>
+                        <th class="px-4 py-3 font-bold"><span class="sr-only">Aksi</span></th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 text-sm text-gray-700">
-                    @forelse ($suratkeluar as $surat)
-                        <tr class="hover:bg-red-50/40 transition-colors">
-                            <td class="py-3 px-4 text-center font-medium text-gray-500">{{ $loop->iteration }}</td>
-                            <td class="py-3 px-4 font-semibold text-gray-900">{{ $surat->nomor_surat }}</td>
-                            <td class="py-3 px-4 text-gray-600">{{ \Carbon\Carbon::parse($surat->tanggal)->format('d M Y') }}</td>
-                            <td class="py-3 px-4 text-gray-800">{{ $surat->tujuan }}</td>
-                            <td class="py-3 px-4 text-gray-600 truncate max-w-xs">{{ $surat->perihal }}</td>
-                            
-                            <!-- Kolom Aksi (Detail, Edit, Hapus) -->
-                            <td class="py-3 px-4 text-center">
-                                <div class="inline-flex items-center space-x-1.5">
-                                    <!-- Tombol Detail -->
-                                    <a href="{{ route('surat-keluar.show', $surat->id) }}" 
-                                       class="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-xs font-medium transition-colors"
-                                       title="Lihat Detail">
-                                        Detail
-                                    </a>
-
-                                    <!-- Tombol Edit -->
-                                    <a href="{{ route('surat-keluar.edit', $surat->id) }}" 
-                                       class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-md text-xs font-medium transition-colors"
-                                       title="Edit Surat">
-                                        Edit
-                                    </a>
-
-                                    <!-- Tombol Hapus / Delete -->
-                                    <form method="POST" action="{{ route('surat-keluar.destroy', $surat->id) }}" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus surat keluar ini?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                class="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-md text-xs font-medium transition-colors"
-                                                title="Hapus Surat">
-                                            Hapus
-                                        </button>
-                                    </form>
+                <tbody class="divide-y divide-line">
+                    @forelse ($suratKeluar as $surat)
+                        <tr class="transition hover:bg-paper/60">
+                            <td class="px-6 py-4 font-mono text-xs text-ink-faint">{{ str_pad($suratKeluar->firstItem() + $loop->index, 2, '0', STR_PAD_LEFT) }}</td>
+                            <td class="px-4 py-4 font-mono text-xs font-medium whitespace-nowrap text-ink">{{ $surat->nomor_surat }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-ink-soft">{{ $surat->tanggal->format('d-m-Y') }}</td>
+                            <td class="px-4 py-4 text-ink-soft">{{ $surat->tujuan }}</td>
+                            <td class="px-4 py-4">
+                                <span class="font-semibold text-ink">{{ $surat->perihal }}</span>
+                                @if ($surat->lampiran)
+                                    <span class="ml-1 inline-flex align-middle text-ink-faint" title="Ada lampiran">
+                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"/></svg>
+                                        <span class="sr-only">Ada lampiran</span>
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                @if ($surat->category)
+                                    <span class="stamp">{{ $surat->category->nama }}</span>
+                                @else
+                                    <span class="text-xs text-ink-faint">Tanpa kategori</span>
+                                @endif
+                            </td>
+                            <td class="max-w-48 truncate px-4 py-4 text-ink-soft">{{ $surat->keterangan ?: '—' }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <div class="flex items-center justify-end gap-1">
+                                    <a class="link-action text-accent hover:bg-accent/10" href="{{ route('surat-keluar.show', $surat->id) }}">Detail</a>
+                                    @can('manage-letters')
+                                        <a class="link-action text-ink-soft hover:bg-paper-deep" href="{{ route('surat-keluar.edit', $surat->id) }}">Edit</a>
+                                        <form method="POST" action="{{ route('surat-keluar.destroy', $surat->id) }}" onsubmit="return confirm('Hapus surat ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="link-action text-rose-700 hover:bg-rose-50" type="submit">Hapus</button>
+                                        </form>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="6" class="py-8 text-center text-gray-400">
-                                <div class="flex flex-col items-center justify-center space-y-2">
-                                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                                    </svg>
-                                    <p class="text-sm font-medium">Belum ada data surat keluar.</p>
-                                </div>
-                            </td>
-                        </tr>
+                        @include('surat._kosong', ['colspan' => 8, 'jenis' => 'surat keluar'])
                     @endforelse
                 </tbody>
             </table>
         </div>
-    </div>
-
-</div>
+        @include('surat._pagination', ['paginator' => $suratKeluar])
+    </section>
 @endsection
